@@ -21,25 +21,18 @@ object hackathon1 {
     
     import ss.implicits._;
     println("BEGIN - Hackathon1");
-    //val sfpddf = sqlc.read.option("header", "false").option("delimiter",",").csv("hdfs://user/hduser/sfpd.csv");
-    //val sfpdpath = "hdfs://user/hduser/sfpd.csv";
     val sfpd = ss.read.format("csv").load("hdfs://localhost:54310/user/hduser/sfpd.csv"); //.as[Incidents];
     println("File to DF");
     val sfpdDF = sfpd.toDF("incidentnum", "category", "description", "dayofweek", "date", 
                            "time", "pddistrict", "resolution", "address", "X", "Y", "pdid");
     
-    println("DF to DS");
     val sfpdDS = sfpdDF.as[Incidents];
-    //  val sfpdRDD = sfpdDF.as[Incidents]
-    //  val sfpdDS = org.apache.spark.sql.Encoders.product[Incidents];
-    println("Table Creation");
     sfpdDS.createOrReplaceTempView("sfpd_table");
     
     val sql = new SQLContext(sc);
     println("Top 5 Districts having highest no.of Incedents")
     val highIncidents = ss.sql("select pddistrict as District, count(1) No_of_Incidents from sfpd_table group by pddistrict order by 2 desc limit 5");
     highIncidents.show();
-    //val df1 = sql.createDataFrame();
     println("Top 10 Resolution having highest no.of Incedents")
     val highResolution = ss.sql("select resolution , count(1) No_of_Incidents from sfpd_table group by resolution order by 2 desc limit 10");
     highResolution.show();
